@@ -33,6 +33,7 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         $librId = Auth::user()->LIBRARY_READER_ID;
+        $name = Auth::user()->USER_NAME;
         $cartid = Auth::user()->CART_ID;
         $total = $request->input('SALES_TOTAL');
         $genre = $request->input('COMIC_GENRE');
@@ -40,17 +41,34 @@ class CheckoutController extends Controller
         $comicId = $request->input('COMIC_ID');
         $salesid = $request->input('SALES_ID');
 
-        // Lakukan validasi input jika diperlukan
-
-        // Temukan penjualan berdasarkan ID
         $sales = Sales::find($salesid);
 
-        // Update status penjualan
         $sales->SALES_STATUS = 'Paid';
         $sales->save();
 
         // Hapus data dari tabel CART_DETAIL
         DB::table('cart_detail')->where('CART_ID', $cartid)->delete();
+
+        // Set your Merchant Server Key
+        \Midtrans\Config::$serverKey = env('midtrans.server_key');
+        // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
+        \Midtrans\Config::$isProduction = false;
+        // Set sanitization on (default)
+        \Midtrans\Config::$isSanitized = true;
+        // Set 3DS transaction for credit card to true
+        \Midtrans\Config::$is3ds = true;
+
+        $params = array(
+            'transaction_details' => array(
+                'order_id' => $salesid,
+                'gross_amount' => $total,
+            ),
+            'customer_details' => array(
+                'first_name' => $name,
+            ),
+        );
+
+        $snapToken = \Midtrans\Snap::getSnapToken($params);
 
         return redirect()->route('libraryreader')->with('message', 'Terima kasih telah melakukan pembayaran');
     }

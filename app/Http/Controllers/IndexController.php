@@ -28,7 +28,10 @@ class IndexController extends Controller
         $ComicListSuperhero = Comic::where('COMIC_GENRE', 'Superhero')->take(12)->get();
         $ComicListRomance = Comic::where('COMIC_GENRE', 'Romance')->take(12)->get();
 
-        $wishlistId = Auth::user()->WISHLIST_ID;
+        $wishlistId = null;
+        if (Auth::check()) {
+            $wishlistId = Auth::user()->WISHLIST_ID;
+        }
 
         $Wishlist = DB::table('wishlist_detail AS wd')
             ->select('wd.WISHLIST_ID', 'u.USER_NAME', 'c.*')
@@ -42,8 +45,14 @@ class IndexController extends Controller
             ->get();
 
         // conditional owner and writer
-        $LibraryReaderId = Auth::user()->LIBRARY_READER_ID;
-        $LibraryWriterId = Auth::user()->LIBRARY_WRITER_ID;
+        $LibraryReaderId = null;
+        if (Auth::check()) {
+            $LibraryReaderId = Auth::user()->WISHLIST_ID;
+        }
+        $LibraryWriterId = null;
+        if (Auth::check()) {
+            $LibraryWriterId = Auth::user()->WISHLIST_ID;
+        }
 
         $LibraryReader = DB::table('user AS u')
             ->leftJoin('library_reader AS lr', 'u.LIBRARY_READER_ID', '=', 'lr.LIBRARY_READER_ID')
